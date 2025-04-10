@@ -35,6 +35,7 @@ class SteamClient:
         api_key: str | None = None,
         username: str | None = None,
         password: str | None = None,
+        shared_secret: str | None = None,
         steam_guard: str | None = None,
         login_cookies: dict | None = None,
         proxies: dict | None = None,
@@ -44,7 +45,12 @@ class SteamClient:
 
         if proxies:
             self.set_proxies(proxies)
-
+        if shared_secret:
+            self.steam_guard = {
+                'shared_secret': shared_secret,
+                'identity_secret': None,
+                'steamid': None,
+            }
         self.steam_guard_string = steam_guard
         if self.steam_guard_string is not None:
             self.steam_guard = guard.load_steam_guard(self.steam_guard_string)
@@ -110,6 +116,7 @@ class SteamClient:
         self.was_login_executed = True
         self.market._set_login_executed(self.steam_guard, self._get_session_id())
         self._access_token = self._set_access_token()
+        self.steam_guard['steamid'] = str(self.get_steam_id())
 
     def _set_access_token(self) ->str :
         steam_login_secure_cookies = [cookie for cookie in self._session.cookies if cookie.name == 'steamLoginSecure']
@@ -164,7 +171,7 @@ class SteamClient:
 
     @login_required
     def get_my_inventory(self, game: GameOptions, merge: bool = True, count: int = 5000) -> dict:
-        steam_id = self.steam_guard['steamid']
+        steam_id = self.get_steam_id()
         return self.get_partner_inventory(steam_id, game, merge, count)
 
     @login_required
@@ -315,8 +322,10 @@ class SteamClient:
         return text_between(offer_response_text, "var g_ulTradePartnerSteamID = '", "';")
 
     def _confirm_transaction(self, trade_offer_id: str) -> dict:
+        if self.steam_guard['identity_secret'] is None or not self.get_steam_id():
+            raise InvalidCredentials('You cannot confirm transaction with only shared_secret passed when initalizing.')
         confirmation_executor = ConfirmationExecutor(
-            self.steam_guard['identity_secret'], self.steam_guard['steamid'], self._session,
+            self.steam_guard['identity_secret'], self.get_steam_id(), self._session,
         )
         return confirmation_executor.send_trade_allow_request(trade_offer_id)
 
