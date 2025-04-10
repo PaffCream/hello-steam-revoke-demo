@@ -1,8 +1,8 @@
 import streamlit as st
 from hello_steam.client import SteamClient
 
-def deauth_all(username, password, steam_guard_code):
-    client = SteamClient()
+def deauth_all(username, password, steam_guard_code, proxy=None):
+    client = SteamClient(proxy=proxy)
     client.login(username=username, password=password, steam_guard_code=steam_guard_code)
     result = client.deauth_all_devices()
     return result
@@ -23,7 +23,8 @@ with st.form("auth_form"):
         "手机令牌验证码",
         help="Steam Mobile 应用生成的 5 位数字"
     )
-    
+    http_proxy = st.text_input("HTTP 代理", help="可选，格式：`http://username:password@host:port`")
+    https_proxy = st.text_input("HTTPS 代理", help="可选，格式：`http://username:password@host:port`")
     submitted = st.form_submit_button("立即撤销所有设备授权")
 
 # 表单提交后执行
@@ -33,7 +34,14 @@ if submitted:
     else:
         try:
             with st.spinner("正在安全撤销设备授权..."):
-                result = deauth_all(username, password, steam_guard_code)
+                if http_proxy or https_proxy:
+                    proxy = {
+                        "http": http_proxy,
+                        "https": https_proxy
+                    }
+                else:
+                    proxy = None
+                result = deauth_all(username, password, steam_guard_code, proxy)
                 
             if result.get("success"):
                 st.success("✅ 所有设备授权已撤销！")
