@@ -1,19 +1,9 @@
-# 🎈 Blank app template
+# Paffsteam-revoke-demo
 
-A simple Streamlit app template for you to modify!
+一个用来登出 Steam 账号，撤销所有设备授权的 Demo
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
-
-### How to run it on your own machine
-
-1. Install the requirements
-
-   ```
-   $ pip install -r requirements.txt
-   ```
-
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+> [!important]
+>
+> 本应用仅供技术演示，`paffsteam` 库的完整代码并未在此处公开
+>
+> 此外，本仓库代码及开发者不对账号的安全性做出保证，请自行解决账号安全问题
